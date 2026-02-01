@@ -1,0 +1,37 @@
+{
+    "name": "@pixellini/stagehand",
+    "version": "0.1.0",
+    "exports": "./src/mod.ts",
+    "tasks": {
+        "test": "deno test --allow-env",
+        "test:watch": "deno test --allow-env --watch",
+        "test:coverage": "deno test --allow-env --coverage=coverage && deno coverage coverage"
+    },
+    "imports": {
+        "@pixellini/stagehand": "./src/mod.ts",
+        "pixi.js": "npm:pixi.js@^8.15.0",
+        "gsap": "npm:gsap@^3.14.2"
+    },
+    "publish": {
+        "include": [
+            "src/",
+            "mod.ts",
+            "README.md",
+            "LICENSE"
+        ],
+        "exclude": [
+            "src/**/*.test.ts",
+            "coverage/"
+        ]
+    },
+    "compilerOptions": {
+        "lib": ["dom", "dom.iterable", "es2024"]
+    },
+    "fmt": {
+        "useTabs": false,
+        "indentWidth": 4,
+        "semiColons": false,
+        "singleQuote": true,
+        "proseWrap": "preserve"
+    }
+}
