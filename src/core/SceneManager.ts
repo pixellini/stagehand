@@ -34,8 +34,6 @@ export class SceneManager {
         this.isTransitioning = true
 
         try {
-            // The user will still see the old scene while the next one is initialised.
-            await newScene.initContext()
 
             // Cleanup old scene
             if (this.currentScene) {
@@ -50,6 +48,9 @@ export class SceneManager {
             // TODO: This is assuming the app always resizes to the window,
             // but there may be some instances were the canvas resizes to an element.
             this.currentScene.onResize(globalThis.innerWidth, globalThis.innerHeight)
+
+            // Start the new scene.
+            await newScene.initContext()
         }
         catch (error) {
             // TODO: proper error handling and logging.
