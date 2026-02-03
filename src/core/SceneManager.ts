@@ -13,6 +13,8 @@ export class SceneManager {
 
         globalThis.addEventListener('resize', () => {
             if (this.currentScene) {
+                // TODO: This is assuming the app always resizes to the window,
+                // but there may be some instances were the canvas resizes to an element.
                 this.currentScene.onResize(globalThis.innerWidth, globalThis.innerHeight)
             }
         })
@@ -45,10 +47,6 @@ export class SceneManager {
             this.currentScene = newScene
             this.root.addChild(this.currentScene)
             
-            // TODO: This is assuming the app always resizes to the window,
-            // but there may be some instances were the canvas resizes to an element.
-            this.currentScene.onResize(globalThis.innerWidth, globalThis.innerHeight)
-
             // Start the new scene.
             await newScene.initContext()
         }
