@@ -7,7 +7,7 @@ import { SceneManager } from './SceneManager.ts'
 gsap.registerPlugin(PixiPlugin)
 
 // CRITICAL: Link the specific PixiJS instance.
-PixiPlugin.registerPIXI(PIXI)
+// PixiPlugin.registerPIXI(PIXI)
 
 interface AppConfig extends PIXI.ApplicationOptions {
     logger?: boolean
