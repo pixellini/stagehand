@@ -1,0 +1,30 @@
+{
+  "name": "@pixellini/stagehand",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/mod.ts",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "files": [
+    "src",
+    "mod.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "gsap": "^3.14.2",
+    "pixi.js": "^8.15.0"
+  },
+  "devDependencies": {
+    "gsap": "^3.14.2",
+    "pixi.js": "^8.15.0"
+  },
+  "scripts": {
+    "test": "echo 'Run tests via: deno test'",
+    "test:watch": "echo 'Run tests via: deno test --watch'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
