@@ -1,7 +1,8 @@
 import gsap from 'gsap'
 import { Container, Point, type ContainerChild, type DestroyOptions } from 'pixi.js'
-import { BaseContainer } from './BaseContainer.ts'
 import { Screen } from '../utils/Screen.ts'
+import { StageEntityMixin } from '../core/Entity.ts'
+import { MouseListener } from '../utils/MouseListener.ts'
 
 export interface ParallaxLayerConfig {
     strength: number
@@ -18,12 +19,13 @@ export interface ParallaxConfig {
  * 
  * TODO: This class should use the gyroscope API if a mouse isn't used or available.
  */
-export class ParallaxStage extends BaseContainer {
+export class ParallaxContainer extends StageEntityMixin(Container) {
     public layers: Container[] = []
     private layerConfigs: ParallaxLayerConfig[]
     
     // State
-    private mouse: Point = new Point(Screen.center.x, Screen.center.y)
+    private listener
+    private target: Point = new Point(Screen.center.x, Screen.center.y)
 
     constructor(config: ParallaxConfig) {
         super()
@@ -35,22 +37,20 @@ export class ParallaxStage extends BaseContainer {
             this.layers.push(layer)
         })
 
-        globalThis.addEventListener('mousemove', this.onMouseMove)
+        this.listener = MouseListener.subscribe(this.onMouseMove)
+
     }
 
     public addToLayer(index: number, child: ContainerChild): void {
         if (this.layers[index]) {
             this.layers[index].addChild(child)
         }
-        else {
-            console.warn(`ParallaxStage: Layer ${index} does not exist.`)
-        }
     }
 
-    private onMouseMove = (e: MouseEvent): void => {
-        gsap.to(this.mouse, {
-            x: e.clientX,
-            y: e.clientY,
+    private onMouseMove = (x: number, y: number): void => {
+        gsap.to(this.target, {
+            x,
+            y,
             duration: 5,
             ease: 'power4.out',
             overwrite: 'auto' // Prevents tweens from conflicting.
@@ -58,8 +58,8 @@ export class ParallaxStage extends BaseContainer {
     }
 
     public update(): void {
-        const offsetX = -(this.mouse.x - Screen.center.x)
-        const offsetY = -(this.mouse.y - Screen.center.y)
+        const offsetX = -(this.target.x - Screen.center.x)
+        const offsetY = -(this.target.y - Screen.center.y)
 
         for (let i = 0; i < this.layers.length; i++) {
             const layer = this.layers[i]
@@ -77,9 +77,9 @@ export class ParallaxStage extends BaseContainer {
         }
     }
 
-    public override destroy(options?: DestroyOptions): void {
-        globalThis.removeEventListener('mousemove', this.onMouseMove)
-        gsap.killTweensOf(this.mouse)
+    public override destroy(options?: DestroyOptions) {
+        this.listener.unsubscribe()
+        gsap.killTweensOf(this.target)
         super.destroy(options)
     }
 }

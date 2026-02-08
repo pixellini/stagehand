@@ -1,7 +1,10 @@
-import type { Texture } from 'pixi.js'
-import { BaseSprite } from './BaseSprite.ts'
+import { Sprite, type Texture } from 'pixi.js'
+import { StageEntityMixin } from '../core/Entity.ts'
 
-export class CoverSprite extends BaseSprite {
+/**
+ *
+ */
+export class CoverSprite extends StageEntityMixin(Sprite) {
     constructor(texture: Texture) {
         super(texture)
         // Always center for now until I implement options.
