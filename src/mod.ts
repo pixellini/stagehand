@@ -1,5 +1,6 @@
 /** CORE **/
 export * from './core/Application.ts'
+export * from './core/Entity.ts'
 export * from './core/Scene.ts'
 export * from './core/SceneManager.ts'
 

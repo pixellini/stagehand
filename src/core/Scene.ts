@@ -1,174 +1,260 @@
 import gsap from 'gsap'
-import { Container, Graphics, Texture, FillGradient } from 'pixi.js'
+import { Container } from 'pixi.js'
 import type { Ticker, DestroyOptions } from 'pixi.js'
-import type { Entity } from '../types/Entity.ts'
-import { CoverSprite } from '../display/CoverSprite.ts'
-import { Screen } from '../utils/Screen.ts'
+import { Logger } from '../utils/Logger.ts'
+import type { MaybePromise } from '../utils/types.ts'
+import type { StageObject } from './Entity.ts'
 
-export abstract class Scene extends Container {
+/**
+ * 
+ */
+export class Scene extends Container {
     /**
      * The title is mainly used for debugging.
      */
-    public title: string
+    public title: string = 'Scene'
     /**
      * GSAP timeline to animate sprites and entities.
      */
-    public masterTimeline!: gsap.core.Timeline
+    public timeline!: gsap.core.Timeline
     /**
-     * The global base duration for animations (in seconds).
-     * This acts as a central reference to sync timing across the scene,
-     * which allows for global adjustments from a single source.
+     * 
      */
-    public ANIMATION_SPEED: number = 1
-    /**
-     * The background image or colour for the scene.
-     */
-    private background: Container | null = null
+    public entities: StageObject[] = []
     /**
      * Create the GSAP bucket.
      * This helps with cleaning up GSAP animations to prevent memory leaks,
      * especially in combination with PixiJS.
      */
     protected ctx: gsap.Context = gsap.context(() => {})
-
-    constructor(title: string) {
-        super()
-        this.title = title
-
-        // Not sure if it should start invisible, but for the time being, 
-        // I've made it a manual process to show the scene once it's ready.
-        this.alpha = 0
+    /**
+     * 
+     */
+    private _timeScale: number = 1
+    /**
+     * 
+     */
+    protected log: Logger
+    /**
+     * The global base duration for animations (in seconds).
+     * This acts as a central reference to sync timing across the scene,
+     * which allows for global adjustments from a single source.
+     */
+    public get timeScale(): number {
+        return this._timeScale
+    }
+    public set timeScale(value: number) {
+        this._timeScale = value
+        if (this.timeline) {
+            this.timeline.timeScale(value)
+        }
     }
 
+    constructor() {
+        super()
+
+        this.log = new Logger(this.constructor.name)
+    }
+
+    /* PUBLIC LIFECYCLE HOOKS */
     /**
      * Called automatically by SceneManager when the scene is added.
      */
-    public abstract init(): Promise<void> | void
-
-    public initContext(): Promise<void> {
-        return new Promise((resolve) => {
-            this.ctx.add(async () => {
-                // It's important that this is created inside of the gsap context.
-                // Otherwise we would run into memory leaks when it needs to be cleaned up.
-                this.masterTimeline = gsap.timeline()
-
-                await this.init()
-
-                resolve()
+    public async _init() {
+        this.ctx.add(() => {
+            // It's important that this is created inside of the gsap context.
+            // Otherwise we would run into memory leaks when it needs to be cleaned up.
+            this.timeline = gsap.timeline({
+                onStart: () => this.onTimelineStart(),
+                onUpdate: () => this.onTimelineUpdate(),
+                onComplete: () => this.onTimelineComplete(),
             })
+            this.timeline.timeScale(this.timeScale)
         })
+        
+        this.onCreate()
+        this.log.info('Started')
+        await this.onStart()
+        await this.onEnd()
+        this.log.info('Ended')
     }
 
     /**
-     * Called once per frame by the SceneManager.
-     * This is optional and should be used if the logic is something GSAP can't handle.
+     * 
      */
-    public update(_ticker: Ticker): void {}
+    protected onCreate(): MaybePromise {}
+
+    /**
+     * 
+     */
+    protected onStart(): MaybePromise {}
+
+    /**
+     * 
+     * @param ticker 
+     * @param delta 
+     */
+    protected onUpdate(ticker: Ticker, delta: number): void {}
+
+    /**
+     * 
+     * @param width 
+     * @param height 
+     */
+    protected onResize(width: number, height: number): MaybePromise {}
+
+    /**
+     * This will call the onCreate method,
+     * but if there needs to be any other setup before resetting,
+     * use this method.
+     */
+    protected onReset(): MaybePromise {}
+
+    /**
+     * This is strictly a syncronous operation.
+     */
+    protected onEnd(): MaybePromise {}
+
+    // TIMELINE HOOKS
+
+    /**
+     * 
+     */
+    protected onTimelineStart() {}
+    /**
+     * 
+     */
+    protected onTimelineUpdate() {}
+    /**
+     * 
+     */
+    protected onTimelineComplete() {}
+
+
+    // GUARDS
 
     /**
      * Checks if this scene should be skipped entirely.
      * The default is false (Always show).
      */
-    public shouldSkip(): boolean { return false }
-
-    // LIFECYCLE HOOKS
+    public canEnter(): boolean { return true }
     /**
-     * Hook function that executes when the scene has completed.
+     * 
      */
-    public onComplete(): void {}
-
+    public canLeave(): boolean { return true }
     /**
-     * Called by SceneManager on window resize.
+     * 
      */
-    public onResize(width: number, height: number): void {
-        this.children.forEach(child => {
-            (child as Entity).onResize?.(width, height)
-        })
+    public isSupported(): boolean { return true }
+
+    // INTERNAL
+    
+    public _update(ticker: Ticker, delta: number) {
+        this.onUpdate(ticker, delta)
+
+        // Loop backwards so entities can remove themselves without breaking the loop
+        for (let i = this.entities.length - 1; i >= 0; i--) {
+            this.entities[i].onUpdate?.(ticker)
+        }
     }
 
-    /**
-     * Called automatically before the scene is removed.
-     */
-    override destroy(options?: DestroyOptions): void {
-        // This will automatically kill any GSAP timelines and tweens,
-        // as long as they are inside this context.
-        this.ctx.revert()
+    public _resize(width: number, height: number) {
+        this.onResize(width, height)
 
+        for (const entity of this.entities) {
+            entity.onResize(width, height)
+        }
+
+        this.log.debug('Resized')
+    }
+
+    public async reset() {
+        this.kill(true)
+
+        await this.onReset()
+
+        this.removeChildren()
+
+        await this._init()
+
+        this.log.info('Reset')
+    }
+
+    public override destroy (options?: DestroyOptions) {
+        this.kill()
+        
         super.destroy(options)
+
+        this.log.info('Destroyed')
     }
 
-    // DISPLAY UTILS
-    /**
-     * Transition into view.
-     */
-    public show(): Promise<void> {
-        return new Promise(resolve => {
-            this.ctx.add(() => {
-                gsap.to(this, {
-                    alpha: 1,
-                    duration: 0.5,
-                    onComplete: resolve
-                })
-            })
-        })
-    }
+    // HELPERS / UTILS
 
     /**
-     * Transition out of view.
+     * This will automatically kill any GSAP timelines and tweens,
+     * as long as they are inside this context.
      */
-    public hide(): Promise<void> {
-        return new Promise(resolve => {
-            this.ctx.add(() => {
-                gsap.to(this, {
-                    alpha: 0,
-                    duration: 0.5,
-                    onComplete: resolve
-                })
-            })
-        })
-    }
+    private kill(destroyChildren?: boolean) {
+        this.ctx.revert()
+        // Refresh the context. Can't forget this or subsequent animations won't be tracked.
+        this.ctx = gsap.context(() => {})
 
-    /**
-     * Sets the scene background.
-     * Currently supports Colours, Texture Aliases, or Pixi FillGradients.
-     */
-    public setBackground(source: number | string | FillGradient): void {
-        // Remove the previous background if it exists already.
-        if (this.background) {
-            this.background.destroy()
+        this.entities = []
+        if (this.timeline) {
+            this.timeline.kill()
         }
 
-        /**
-         * Depending on what the source type is,
-         * it has to be handled in a unique way.
-         */
-        if (source instanceof FillGradient) {
-            // TODO: Rectangle class to enable resizing
-            this.background = new Graphics()
-            .clear()
-            .rect(0, 0, Screen.width, Screen.height)
-            .fill(source)
-
-        } else if (typeof source === 'number') {
-            // TODO: Rectangle class to enable resizing
-            this.background = new Graphics()
-            .rect(0, 0, Screen.width, Screen.height)
-            .fill({ color: source })
-
-        } else if (typeof source === 'string') {
-            const texture = Texture.from(source)
-            // This is assuming CoverSprite handles its own resizing internally.
-            // Probably should test this.
-            this.background = new CoverSprite(texture) 
+        if (destroyChildren) {
+            this.destroyChildren()
         }
+    }
 
-        if (this.background) {
-            if (this.children.length > 0) {
-                // Add to bottom of stack
-                this.addChildAt(this.background, 0)
-            } else {
-                this.addChild(this.background)
+    /**
+     * 
+     */
+    private destroyChildren() {
+        const children = this.removeChildren()
+        for (const child of children) {
+            // Ensure we don't try to destroy something already dead
+            if (!child.destroyed) {
+                child.destroy({ children: true }) 
             }
         }
+    }
+
+    /**
+     * 
+     * @param entity 
+     */
+    public addEntity(entity: StageObject) {
+        // more of a runtime safety check
+        if (!entity) {
+            this.log.error('Entity cannot be added')
+            return
+        }
+
+        this.addChild(entity)
+        entity._init()
+    }
+
+    /**
+     * 
+     * @param entity 
+     */
+    public removeEntity(entity: StageObject) {
+        // more of a runtime safety check
+        if (!entity) {
+            this.log.error('Entity cannot be deleted')
+            return
+        }
+
+        const index = this.entities.indexOf(entity)
+        if (index > -1) {
+            this.entities.splice(index, 1)
+        }
+
+        this.removeChild(entity)
+
+        entity.destroy()
     }
 }

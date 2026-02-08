@@ -1,17 +1,21 @@
 import gsap from 'gsap'
-import PixiPlugin from 'gsap/dist/PixiPlugin.js' // Standard sub-path import
+import PixiPlugin from 'gsap/dist/PixiPlugin.js'
 import * as PIXI from 'pixi.js'
 import { SceneManager } from './SceneManager.ts'
+import { Logger, LogLevel } from '../utils/Logger.ts'
+import type { Scene } from './Scene.ts'
+import { registerEffects } from '../plugins/Effects.ts'
 
 // Register the plugin with GSAP
 gsap.registerPlugin(PixiPlugin)
 
+// TODO: is this still required or is there an update?
 // CRITICAL: Link the specific PixiJS instance.
 // @ts-expect-error Property 'registerPIXI' does not exist on type...
 PixiPlugin.registerPIXI(PIXI)
 
 interface AppConfig extends PIXI.ApplicationOptions {
-    logger?: boolean
+    debug?: LogLevel
     debugGrid?: boolean
 
     // TODO: Pass through GSAP Configuration
@@ -25,34 +29,37 @@ export class PixiApplication {
 
     private appConfig: Partial<AppConfig> | undefined
 
+    private log = new Logger('Application')
+
     constructor() {
         this.pixi = new PIXI.Application()
         this.sceneManager = new SceneManager(this.pixi.stage)
+        registerEffects()
     }
 
     public async init(config: Partial<AppConfig>) {
         if (this.isInitialised) {
-            // TODO: error handling
+            throw new Error('Application init ran multiple times')
         }
 
         if (!config) {
-            throw new ApplicationInitError()
+            throw new Error('Config was not provided')
         }
 
         this.appConfig = config
 
+        Logger.level = config.debug ?? LogLevel.None
+
         // TODO: Remove custom settings from here to not interfere with Pixi.
         await this.pixi.init(config)
-        this.pixi.ticker.add((ticker) => {
-            this.sceneManager.update(ticker)
-        })
 
         const canvas = document.getElementById('app')
         if (canvas) canvas.appendChild(this.pixi.canvas)
 
-        this.isInitialised = true
-
         this.setupTicker()
+
+        this.isInitialised = true
+        this.log.info('💡 Lights! 🎥 Camera! 🎉 Action!')
     }
 
     /* GSAP & PIXI SETUP */
@@ -64,39 +71,16 @@ export class PixiApplication {
         // Register the update loop with GSAP.
         // This ensures the two libraries are synced,
         // and that GSAP is the source of truth for animations and tickers.
-        gsap.ticker.add((_time, _deltaTime, _frame) => {
+        gsap.ticker.add((_time, delta, _frame) => {
             this.pixi.ticker.update()
 
             // We still use Pixi's ticker because it contains the calculated deltaTime.
-            this.sceneManager.update(this.pixi.ticker)
+            this.sceneManager.update(this.pixi.ticker, delta)
             this.pixi.renderer.render(this.pixi.stage)
         })
     }
-}
 
-// PRESETS
-/**
- * 
- */
-export const presetWindow: Partial<AppConfig> = {
-    resizeTo: window,
-    backgroundAlpha: 0,
-    antialias: true,
-    resolution: Math.min(globalThis.devicePixelRatio, 2),
-    autoDensity: true
-}
-
-// ERROR HANDLING
-export class PixiGsapApplicationError extends Error {
-    constructor(message: string) {
-        super(message)
-        this.name = 'PixiGsapApplicationError'
-    }
-}
-
-export class ApplicationInitError extends PixiGsapApplicationError {
-    constructor(message: string = 'Application already initialised') {
-        super(message)
-        this.name = 'ApplicationInitError'
+    public play(nextScene: Scene) {
+        return this.sceneManager.play(nextScene)
     }
 }

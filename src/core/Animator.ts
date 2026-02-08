@@ -1,5 +1,5 @@
 import gsap from 'gsap'
-import type { Container } from 'pixi.js'
+import type { StageObject } from './Entity.ts'
 
 export interface AnimationConfig {
     /**
@@ -12,8 +12,8 @@ export interface AnimationConfig {
     exclusive?: boolean
 }
 
-export class Animator {
-    private target: Container
+export class Animator<T extends string = string> {
+    private target: StageObject
     private animations: Map<string, AnimationConfig> = new Map()
     private currentTween: gsap.core.Tween | null = null
 
@@ -21,20 +21,23 @@ export class Animator {
      * The property that allows dynamic animation access.
      * @example animator.play.walk()
      */
-    public readonly play: Record<string, (vars?: gsap.TweenVars) => gsap.core.Tween> = {}
+    public readonly play: Record<T, (vars?: gsap.TweenVars) => gsap.core.Tween>
 
-    constructor(target: Container) {
+    constructor(target: StageObject) {
         this.target = target
+        this.play = {} as unknown as Record<T, (vars?: gsap.TweenVars) => gsap.core.Tween>
     }
 
     /**
      * Registers a new animation.
      */
-    public add(name: string, config: AnimationConfig): void {
+    public add(name: T, config: AnimationConfig): void {
         this.animations.set(name, config)
         
         // Set the new animation method for access.
-        this.play[name] = (vars?: gsap.TweenVars) => this.run(name, vars) as gsap.core.Tween
+        this.play[name] = (vars?: gsap.TweenVars) => {
+            return this.run(name, vars) as gsap.core.Tween
+        }
     }
 
     /**
@@ -54,7 +57,9 @@ export class Animator {
         const animation = this.animations.get(name)
         if (!animation) return undefined
 
-        if (animation.exclusive !== false && this.currentTween) {
+        const isExclusive = animation.exclusive ?? true
+
+        if (isExclusive && this.currentTween) {
             this.currentTween.kill()
         }
 
@@ -66,9 +71,13 @@ export class Animator {
             ...overrideVars,
             onComplete: () => {
                 this.currentTween = null
-                
-                if (baseVars.onComplete) (baseVars.onComplete as Function)()
-                if (overrideVars?.onComplete) (overrideVars.onComplete as Function)()
+
+                if (typeof baseVars.onComplete === 'function') {
+                    baseVars.onComplete()
+                }
+                if (typeof overrideVars?.onComplete === 'function') {
+                    overrideVars.onComplete()
+                }
             }
         })
 
