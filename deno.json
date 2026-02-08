@@ -2,6 +2,10 @@
     "name": "@pixellini/stagehand",
     "version": "0.1.0",
     "exports": "./src/mod.ts",
+     "workspace": [
+        "./demo",
+        "./sketches/*"
+    ],
     "tasks": {
         "test": "deno test --allow-env",
         "test:watch": "deno test --allow-env --watch",

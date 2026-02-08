@@ -1,5 +1,5 @@
 # @pixellini/stagehand
 
-A scene and entity management system for PixiJS and GSAP.
+Stagehand is an animation timeline framework and management system using PixiJS and GSAP.
 
 **Status:** In progress
