@@ -1,3 +1,10 @@
+/** COMPONENTS **/
+export * from './components/Circle.ts'
+export * from './components/Cursor.ts'
+export * from './components/Square.ts'
+export * from './components/Triangle.ts'
+export * from './components/types.ts'
+
 /** CORE **/
 export * from './core/Application.ts'
 export * from './core/Entity.ts'
@@ -11,8 +18,7 @@ export * from './display/BaseGraphics.ts'
 export * from './display/BaseSprite.ts'
 export * from './display/BaseText.ts'
 export * from './display/CoverSprite.ts'
-export * from './display/ParallaxStage.ts'
-export * from './display/Square.ts'
+export * from './display/ParallaxContainer.ts'
 
 /** UTILS **/
 export * from './utils/AssetLoader.ts'
