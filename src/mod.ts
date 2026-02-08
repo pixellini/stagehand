@@ -1,3 +1,5 @@
+/// <reference path="./gsap.d.ts" />
+
 /** COMPONENTS **/
 export * from './components/Circle.ts'
 export * from './components/Cursor.ts'
@@ -12,13 +14,11 @@ export * from './core/Scene.ts'
 export * from './core/SceneManager.ts'
 
 /** DISPLAY **/
-export * from './display/BaseAnimatedSprite.ts'
-export * from './display/BaseContainer.ts'
-export * from './display/BaseGraphics.ts'
-export * from './display/BaseSprite.ts'
-export * from './display/BaseText.ts'
 export * from './display/CoverSprite.ts'
 export * from './display/ParallaxContainer.ts'
+
+/** PLUGINS **/
+export * from './plugins/Effects.ts'
 
 /** UTILS **/
 export * from './utils/AssetLoader.ts'
