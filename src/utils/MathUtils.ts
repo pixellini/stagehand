@@ -1,3 +1,6 @@
+import { Point } from 'pixi.js'
+import { Screen } from './Screen.ts'
+
 export class MathUtils {
     /**
      * Remaps a number from one range to another.

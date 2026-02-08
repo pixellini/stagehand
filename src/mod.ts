@@ -16,8 +16,10 @@ export * from './display/Square.ts'
 
 /** UTILS **/
 export * from './utils/AssetLoader.ts'
-export * from './utils/EntityUtils.ts'
 export * from './utils/Logger.ts'
 export * from './utils/MathUtils.ts'
+export * from './utils/MouseListener.ts'
+export * from './utils/SceneUtils.ts'
 export * from './utils/Screen.ts'
 export * from './utils/Time.ts'
+export * from './utils/types.ts'
