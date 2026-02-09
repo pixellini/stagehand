@@ -33,7 +33,7 @@ export class PixiApplication {
 
     constructor() {
         this.pixi = new PIXI.Application()
-        this.sceneManager = new SceneManager(this.pixi.stage)
+        this.sceneManager = new SceneManager(this.pixi)
         registerEffects()
     }
 
@@ -50,8 +50,7 @@ export class PixiApplication {
 
         Logger.level = config.debug ?? LogLevel.None
 
-        // TODO: Remove custom settings from here to not interfere with Pixi.
-        await this.pixi.init(config)
+        await this.pixi.init({ ...config, autoStart: false })
 
         const canvas = document.getElementById('app')
         if (canvas) canvas.appendChild(this.pixi.canvas)

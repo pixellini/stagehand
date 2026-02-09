@@ -1,4 +1,4 @@
-import type { Container, Ticker } from 'pixi.js'
+import type { Container, Ticker, Application } from 'pixi.js'
 import type { Scene } from './Scene.ts'
 import { Logger } from '../utils/Logger.ts'
 
@@ -6,6 +6,7 @@ import { Logger } from '../utils/Logger.ts'
  * 
  */
 export class SceneManager {
+    private appRef: Application
     /**
      * 
      */
@@ -27,8 +28,9 @@ export class SceneManager {
      */
     private resizeHandler: () => void
 
-    constructor(root: Container) {
-        this.root = root
+    constructor(root: Application) {
+        this.appRef = root
+        this.root = this.appRef.stage
         
         this.log = new Logger(this.constructor.name)
         this.log.info('created')
@@ -48,46 +50,39 @@ export class SceneManager {
      * @internal
      */
     public async play(nextScene: Scene): Promise<void> {
-        if (!nextScene) {
-            // TODO: Throw error
-            this.log.error('the next scene was not provided.')
-        }
-
-        if (this.isTransitioning) {
-            this.log.warn('unable to load next scene due to previous scene still transitioning.')
-            return
-        }
-
-        if (!nextScene.isSupported()) {
-            this.log.warn('next scene is not supported.')
-            nextScene.destroy()
-            return
-        }
-
-        if (!nextScene.canEnter()) {
-            this.log.warn('cannot enter next scene.')
-            nextScene.destroy()
+        if (!nextScene || this.isTransitioning) {
+            this.log.warn('unable to load next scene.')
             return
         }
 
         this.isTransitioning = true
 
         try {
-            // Cleanup old scene
+            if (!nextScene.isSupported() || !nextScene.canEnter()) {
+                this.log.warn('Next scene was rejected.')
+                nextScene.destroy()
+                return
+            }
+
             if (this.currentScene) {
-                // TODO: should the current scene have an "animate out" capability?
+                await this.currentScene.onBeforeDestroy()
                 this.currentScene.destroy({ children: true })
             }
 
-            // Setup new scene
             this.currentScene = nextScene
             this.root.addChild(this.currentScene)
-            
-            // Start the new scene.
+
             await this.currentScene._init()
+
+            if (this.appRef.renderer.prepare) {
+                await this.appRef.renderer.prepare.upload(nextScene)
+            }
+            
+            this.log.info('Scene swapped')
         }
         catch (error) {
             this.log.error(error)
+            this.isTransitioning = false
         }
         finally {
             this.isTransitioning = false
@@ -98,8 +93,8 @@ export class SceneManager {
      * The bridge that passes the Tick down to the active scene.
      * @internal
      */
-    public update(ticker: Ticker, delta: number): void {
-        this.currentScene?._update(ticker, delta)
+    public update(ticker: Ticker): void {
+        this.currentScene?._update(ticker)
     }
 
     /**

@@ -82,53 +82,59 @@ export class Scene extends Container {
     /**
      * 
      */
-    protected onCreate(): MaybePromise {}
+    public onCreate(): void {}
 
     /**
      * 
      */
-    protected onStart(): MaybePromise {}
+    public onStart(): MaybePromise {}
 
     /**
      * 
      * @param ticker 
-     * @param delta 
      */
-    protected onUpdate(ticker: Ticker, delta: number): void {}
+    public onUpdate(ticker: Ticker): void {}
 
     /**
      * 
      * @param width 
      * @param height 
      */
-    protected onResize(width: number, height: number): MaybePromise {}
+    public onResize(width: number, height: number): MaybePromise {}
 
     /**
      * This will call the onCreate method,
      * but if there needs to be any other setup before resetting,
      * use this method.
      */
-    protected onReset(): MaybePromise {}
+    public onReset(): MaybePromise {}
 
     /**
-     * This is strictly a syncronous operation.
+     * When the scene is finished,
+     * or the main timeline has ended.
      */
-    protected onEnd(): MaybePromise {}
+    public onEnd(): MaybePromise {}
+
+    /**
+     * For handling any clean up of the scene.
+     * Useful for destroying all other external scene objects.
+     */
+    public onBeforeDestroy(): MaybePromise {}
 
     // TIMELINE HOOKS
 
     /**
      * 
      */
-    protected onTimelineStart() {}
+    public onTimelineStart() {}
     /**
      * 
      */
-    protected onTimelineUpdate() {}
+    public onTimelineUpdate() {}
     /**
      * 
      */
-    protected onTimelineComplete() {}
+    public onTimelineComplete() {}
 
 
     // GUARDS
@@ -149,8 +155,8 @@ export class Scene extends Container {
 
     // INTERNAL
     
-    public _update(ticker: Ticker, delta: number) {
-        this.onUpdate(ticker, delta)
+    public _update(ticker: Ticker) {
+        this.onUpdate(ticker)
 
         // Loop backwards so entities can remove themselves without breaking the loop
         for (let i = this.entities.length - 1; i >= 0; i--) {
@@ -180,6 +186,7 @@ export class Scene extends Container {
         this.log.info('Reset')
     }
 
+    /** @internal **/
     public override destroy (options?: DestroyOptions) {
         this.kill()
         

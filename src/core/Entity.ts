@@ -10,7 +10,11 @@ export interface StageEntity {
     /**
      * 
      */
-    onCreate(): MaybePromise
+    onCreate(): void
+    /**
+     * 
+     */
+    onStart(): MaybePromise
     /**
      * 
      */
@@ -50,19 +54,24 @@ export function StageEntityMixin<TBase extends Constructor<Container>>(Base: TBa
          */
         public get animator(): Animator {
             if (!this._animator) {
-                this._animator = new Animator(this)
+                this._animator = new Animator(this as unknown as StageObject)
             }
             return this._animator
         }
         
         // PUBLIC HOOKS
-        public onCreate(): MaybePromise {}
         
-        public onUpdate(_ticker: Ticker): void {}
+        public onCreate(): void {}
 
-        public onResize(_w: number, _h: number): void {}
+        public onStart(): MaybePromise {}
+        
+        public onUpdate(ticker: Ticker): void {}
 
-        public onDestroy(_options?: DestroyOptions): void {}
+        public onResize(width: number, height: number): void {}
+
+        public onDestroy(options?: DestroyOptions): void {}
+
+        // INTERNAL
 
         /** @internal **/
         public async _init() {
