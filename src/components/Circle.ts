@@ -1,8 +1,7 @@
-import { Graphics } from 'pixi.js'
 import type { ShapeOptions } from './types.ts'
-import { StageEntityMixin } from '../core/Entity.ts'
+import { StageGraphics } from '../types/Entities.ts'
 
-export class Circle extends StageEntityMixin(Graphics) {
+export class Circle extends StageGraphics {
     constructor(context?: ShapeOptions) {
         super()
         this.alpha = 1

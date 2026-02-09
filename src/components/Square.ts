@@ -1,8 +1,7 @@
-import { Graphics } from 'pixi.js'
-import { StageEntityMixin } from '../core/Entity.ts'
+import { StageGraphics } from '../types/Entities.ts'
 import type { ShapeOptions } from './types.ts'
 
-export class Square extends StageEntityMixin(Graphics) {
+export class Square extends StageGraphics {
     constructor(context?: ShapeOptions) {
         super()
         

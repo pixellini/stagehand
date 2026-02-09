@@ -1,8 +1,9 @@
 import gsap from 'gsap'
-import { Container, Point, type ContainerChild, type DestroyOptions } from 'pixi.js'
+import { Point, type DestroyOptions } from 'pixi.js'
 import { Screen } from '../utils/Screen.ts'
-import { StageEntityMixin } from '../core/Entity.ts'
 import { MouseListener } from '../utils/MouseListener.ts'
+import { StageContainer } from '../types/Entities.ts'
+import type { StageObject } from '../core/Entity.ts'
 
 export interface ParallaxLayerConfig {
     strength: number
@@ -19,8 +20,8 @@ export interface ParallaxConfig {
  * 
  * TODO: This class should use the gyroscope API if a mouse isn't used or available.
  */
-export class ParallaxContainer extends StageEntityMixin(Container) {
-    public layers: Container[] = []
+export class ParallaxContainer extends StageContainer {
+    public layers: StageContainer[] = []
     private layerConfigs: ParallaxLayerConfig[]
     
     // State
@@ -32,7 +33,7 @@ export class ParallaxContainer extends StageEntityMixin(Container) {
         this.layerConfigs = config.layers
 
         this.layerConfigs.forEach(() => {
-            const layer = new Container()
+            const layer = new StageContainer()
             this.addChild(layer)
             this.layers.push(layer)
         })
@@ -41,7 +42,7 @@ export class ParallaxContainer extends StageEntityMixin(Container) {
 
     }
 
-    public addToLayer(index: number, child: ContainerChild): void {
+    public addToLayer(index: number, child: StageObject): void {
         if (this.layers[index]) {
             this.layers[index].addChild(child)
         }

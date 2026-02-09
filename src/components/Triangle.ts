@@ -1,8 +1,7 @@
-import { Graphics } from 'pixi.js'
-import { StageEntityMixin } from '../core/Entity.ts'
 import type { ShapeOptions } from './types.ts'
+import { StageGraphics } from '../types/Entities.ts'
 
-export class Triangle extends StageEntityMixin(Graphics) {
+export class Triangle extends StageGraphics {
     private size: number
     private color: string | number
     private centered: boolean
