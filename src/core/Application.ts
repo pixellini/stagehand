@@ -70,11 +70,11 @@ export class PixiApplication {
         // Register the update loop with GSAP.
         // This ensures the two libraries are synced,
         // and that GSAP is the source of truth for animations and tickers.
-        gsap.ticker.add((_time, delta, _frame) => {
+        gsap.ticker.add(() => {
             this.pixi.ticker.update()
 
             // We still use Pixi's ticker because it contains the calculated deltaTime.
-            this.sceneManager.update(this.pixi.ticker, delta)
+            this.sceneManager.update(this.pixi.ticker)
             this.pixi.renderer.render(this.pixi.stage)
         })
     }
