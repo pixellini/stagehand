@@ -75,6 +75,14 @@ export class Scene extends Container {
         this.onCreate()
         this.log.info('Started')
         await this.onStart()
+
+        // Wait for the GSAP timeline to complete before calling onEnd
+        if (this.timeline && this.timeline.totalDuration() > 0) {
+            await new Promise<void>((resolve) => {
+                this.timeline.eventCallback('onComplete', () => resolve())
+            })
+        }
+
         await this.onEnd()
         this.log.info('Ended')
     }
