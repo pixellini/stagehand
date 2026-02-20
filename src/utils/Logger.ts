@@ -33,7 +33,7 @@ export class Logger {
     }
 
     public debug(...args: unknown[]): void {
-        if (Logger.level === LogLevel.Debug) {
+        if (Logger.level <= LogLevel.Debug) {
             this.exec('debug', '#a5ffb7', ...args)
         }
     }
