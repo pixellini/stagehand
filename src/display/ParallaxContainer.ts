@@ -1,5 +1,5 @@
 import gsap from 'gsap'
-import { Point, type DestroyOptions } from 'pixi.js'
+import { Point, type DestroyOptions, type Ticker } from 'pixi.js'
 import { Screen } from '../utils/Screen.ts'
 import { MouseListener } from '../utils/MouseListener.ts'
 import { StageContainer } from '../types/Entities.ts'
@@ -40,6 +40,10 @@ export class ParallaxContainer extends StageContainer {
 
         this.listener = MouseListener.subscribe(this.onMouseMove)
 
+    }
+
+    public override onUpdate(_ticker: Ticker): void {
+        this.update()
     }
 
     public addToLayer(index: number, child: StageObject): void {
