@@ -240,6 +240,7 @@ export class Scene extends Container {
             return
         }
 
+        this.entities.push(entity)
         this.addChild(entity)
         entity._init()
     }
