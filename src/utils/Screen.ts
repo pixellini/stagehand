@@ -10,10 +10,16 @@ class ScreenManager {
         bottomLeft: new Point(),
         bottomRight: new Point()
     }
+    private handler: () => void
 
     constructor() {
+        this.handler = () => this.resize()
         this.resize()
-        globalThis.addEventListener('resize', () => this.resize())
+        globalThis.addEventListener('resize', this.handler)
+    }
+
+    public destroy(): void {
+        globalThis.removeEventListener('resize', this.handler)
     }
 
     public resize(): void {
