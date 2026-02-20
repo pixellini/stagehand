@@ -15,7 +15,7 @@ export interface AnimationConfig {
 export class Animator<T extends string = string> {
     private target: StageObject
     private animations: Map<string, AnimationConfig> = new Map()
-    private currentTween: gsap.core.Tween | null = null
+    private activeTweens: Set<gsap.core.Tween> = new Set()
 
     /**
      * The property that allows dynamic animation access.
@@ -44,10 +44,10 @@ export class Animator<T extends string = string> {
      * Stops the animation.
      */
     public stop(): void {
-        if (this.currentTween) {
-            this.currentTween.kill()
-            this.currentTween = null
+        for (const tween of this.activeTweens) {
+            tween.kill()
         }
+        this.activeTweens.clear()
     }
 
     /**
@@ -59,18 +59,18 @@ export class Animator<T extends string = string> {
 
         const isExclusive = animation.exclusive ?? true
 
-        if (isExclusive && this.currentTween) {
-            this.currentTween.kill()
+        if (isExclusive) {
+            this.stop()
         }
 
         const { duration = 0.5, ...baseVars } = animation.vars
 
-        this.currentTween = gsap.to(this.target, {
+        const tween = gsap.to(this.target, {
             duration,
             ...baseVars,
             ...overrideVars,
             onComplete: () => {
-                this.currentTween = null
+                this.activeTweens.delete(tween)
 
                 if (typeof baseVars.onComplete === 'function') {
                     baseVars.onComplete()
@@ -81,6 +81,8 @@ export class Animator<T extends string = string> {
             }
         })
 
-        return this.currentTween
+        this.activeTweens.add(tween)
+
+        return tween
     }
 }
