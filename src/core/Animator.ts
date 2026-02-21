@@ -25,7 +25,13 @@ export class Animator<T extends string = string> {
 
     constructor(target: StageObject) {
         this.target = target
-        this.play = {} as unknown as Record<T, (vars?: gsap.TweenVars) => gsap.core.Tween>
+        this.play = new Proxy({} as Record<T, (vars?: gsap.TweenVars) => gsap.core.Tween>, {
+            get: (_obj, prop: string) => {
+                return (vars?: gsap.TweenVars) => {
+                    return this.run(prop, vars) as gsap.core.Tween
+                }
+            }
+        })
     }
 
     /**
@@ -33,11 +39,6 @@ export class Animator<T extends string = string> {
      */
     public add(name: T, config: AnimationConfig): void {
         this.animations.set(name, config)
-        
-        // Set the new animation method for access.
-        this.play[name] = (vars?: gsap.TweenVars) => {
-            return this.run(name, vars) as gsap.core.Tween
-        }
     }
 
     /**

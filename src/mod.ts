@@ -20,7 +20,7 @@ export * from './display/ParallaxContainer.ts'
 /** PLUGINS **/
 export * from './plugins/Effects.ts'
 
-/** PLUGINS **/
+/** TYPES **/
 export * from './types/Entities.ts'
 
 /** UTILS **/
