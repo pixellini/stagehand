@@ -17,6 +17,7 @@ PixiPlugin.registerPIXI(PIXI)
 interface AppConfig extends PIXI.ApplicationOptions {
     debug?: LogLevel
     debugGrid?: boolean
+    container?: HTMLElement | string
 
     // TODO: Pass through GSAP Configuration
 }
@@ -52,13 +53,23 @@ export class PixiApplication {
 
         await this.pixi.init({ ...config, autoStart: false })
 
-        const canvas = document.getElementById('app')
-        if (canvas) canvas.appendChild(this.pixi.canvas)
+        const target = this.resolveTargetContainer(config.container)
+        this.mountCanvas(target)
 
         this.setupTicker()
 
         this.isInitialised = true
         this.log.info('💡 Lights! 🎥 Camera! 🎉 Action!')
+    }
+
+    private resolveTargetContainer(container?: HTMLElement | string): Element | null {
+        if (container) {
+            return typeof container === 'string'
+                ? document.querySelector(container)
+                : container
+        }
+
+        return document.getElementById('app')
     }
 
     /* GSAP & PIXI SETUP */
