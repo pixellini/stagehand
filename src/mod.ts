@@ -8,6 +8,7 @@ export * from './components/Triangle.ts'
 export * from './components/types.ts'
 
 /** CORE **/
+export * from './core/Animator.ts'
 export * from './core/Application.ts'
 export * from './core/Entity.ts'
 export * from './core/Scene.ts'
