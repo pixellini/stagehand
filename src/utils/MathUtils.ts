@@ -1,6 +1,3 @@
-import { Point } from 'pixi.js'
-import { Screen } from './Screen.ts'
-
 export class MathUtils {
     /**
      * Remaps a number from one range to another.
@@ -55,5 +52,15 @@ export class MathUtils {
         // Added initial value '0' to reduce to prevent crash on empty arrays
         let r = Math.random() * weights.reduce((a, b) => a + b, 0)
         return weights.findIndex((w) => (r -= w) < 0)
+    }
+
+    /**
+     * Returns a random item from an array.
+     * @returns The item, or undefined if the array is empty.
+     */
+    public static sample<T>(array: T[]): T | undefined {
+        if (array.length === 0) return undefined
+        const index = Math.floor(Math.random() * array.length)
+        return array[index]
     }
 }

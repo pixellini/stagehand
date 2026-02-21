@@ -15,14 +15,4 @@ export class SceneUtils {
             MathUtils.random(0, Screen.height)
         )
     }
-
-    /**
-     * Returns a random item from an array.
-     * @returns The item, or undefined if the array is empty.
-     */
-    public static sample<T>(array: T[]): T | undefined {
-        if (array.length === 0) return undefined
-        const index = Math.floor(Math.random() * array.length)
-        return array[index]
-    }
 }
