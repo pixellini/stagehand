@@ -1,6 +1,8 @@
 import type { Container, Ticker, Application } from 'pixi.js'
 import type { Scene } from './Scene.ts'
 import { Logger } from '../utils/Logger.ts'
+import { AssetLoader } from '../utils/AssetLoader.ts'
+import type { SceneAssets } from './Scene.ts'
 
 /**
  * 
@@ -72,6 +74,8 @@ export class SceneManager {
             this.currentScene = nextScene
             this.root.addChild(this.currentScene)
 
+            await this.loadSceneAssets(nextScene?.assets)
+
             await this.currentScene._init()
 
             if (this.appRef.renderer.prepare) {
@@ -82,7 +86,6 @@ export class SceneManager {
         }
         catch (error) {
             this.log.error(error)
-            this.isTransitioning = false
         }
         finally {
             this.isTransitioning = false
@@ -102,5 +105,21 @@ export class SceneManager {
      */
     public destroy() {
         globalThis.removeEventListener('resize', this.resizeHandler)
+    }
+
+    private async loadSceneAssets(assets: SceneAssets | undefined) {
+        if (!assets) {
+            return
+        }
+
+        if (assets.bundle) {
+            await AssetLoader.loadBundle(assets.bundle)
+        }
+
+        if (assets.preload) {
+            for (const bundle of assets.preload) {
+                AssetLoader.backgroundLoadBundle(bundle)
+            }
+        }
     }
 }

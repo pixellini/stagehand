@@ -5,10 +5,26 @@ import { Logger } from '../utils/Logger.ts'
 import type { MaybePromise } from '../utils/types.ts'
 import type { StageObject } from './Entity.ts'
 
+export interface SceneAssets {
+    /**
+     * The bundle to load before the scene starts.
+     */
+    bundle?: string
+    /**
+     * Bundles to background load after the scene starts.
+     */
+    preload?: string[]
+}
+
 /**
  * 
  */
 export class Scene extends Container {
+    /**
+     * Assets to load for this scene.
+     * Override in subclasses to declare required bundles.
+     */
+    public assets?: SceneAssets
     /**
      * The title is mainly used for debugging.
      */
