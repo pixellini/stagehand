@@ -1,4 +1,5 @@
 import { Assets } from 'pixi.js'
+import { Logger } from './Logger.ts'
 
 export interface AssetEntry {
     alias: string
@@ -14,6 +15,7 @@ export interface AssetManifest {
 
 export class AssetLoader {
     private static _initialised = false
+    private static log = new Logger('AssetLoader')
 
     public static async init(manifest: AssetManifest): Promise<void> {
         if (this._initialised) return
@@ -26,7 +28,7 @@ export class AssetLoader {
         try {
             await Assets.loadBundle(bundleName, onProgress)
         } catch (e) {
-            console.error(`[AssetLoader] Failed to load bundle: ${bundleName}`, e)
+            this.log.error(`Failed to load bundle: ${bundleName}`, e)
         }
     }
 
@@ -37,10 +39,10 @@ export class AssetLoader {
     public static backgroundLoadBundle(bundleName: string): void {
         Assets.backgroundLoadBundle(bundleName)
         .then(() => {
-            console.log(`[AssetLoader] Background load complete: ${bundleName}`);
+            this.log.info(`Background load complete: ${bundleName}`)
         })
         .catch((e) => {
-            console.error(`[AssetLoader] Background load failed: ${bundleName}`, e);
+            this.log.error(`Background load failed: ${bundleName}`, e)
         })
     }
 }
