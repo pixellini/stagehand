@@ -32,6 +32,8 @@ export class PixiApplication {
 
     private log = new Logger('Application')
 
+    private gsapTickerCallback: gsap.TickerCallback | null = null
+
     constructor() {
         this.pixi = new PIXI.Application()
         this.sceneManager = new SceneManager(this.pixi)
@@ -72,6 +74,20 @@ export class PixiApplication {
         return document.getElementById('app')
     }
 
+    private mountCanvas(target: Element | null): void {
+        if (target) {
+            target.appendChild(this.pixi.canvas)
+        }
+    }
+
+    private tickAndRender(): void {
+        this.pixi.ticker.update()
+
+        // We still use Pixi's ticker because it contains the calculated deltaTime.
+        this.sceneManager.update(this.pixi.ticker)
+        this.pixi.renderer.render(this.pixi.stage)
+    }
+
     /* GSAP & PIXI SETUP */
     private setupTicker() {
         // Prevent Pixi's internal ticker.
@@ -81,16 +97,25 @@ export class PixiApplication {
         // Register the update loop with GSAP.
         // This ensures the two libraries are synced,
         // and that GSAP is the source of truth for animations and tickers.
-        gsap.ticker.add(() => {
-            this.pixi.ticker.update()
-
-            // We still use Pixi's ticker because it contains the calculated deltaTime.
-            this.sceneManager.update(this.pixi.ticker)
-            this.pixi.renderer.render(this.pixi.stage)
-        })
+        this.gsapTickerCallback = () => {
+            this.tickAndRender()
+        }
+        gsap.ticker.add(this.gsapTickerCallback)
     }
 
     public play(nextScene: Scene) {
         return this.sceneManager.play(nextScene)
+    }
+
+    public destroy() {
+        if (this.gsapTickerCallback) {
+            gsap.ticker.remove(this.gsapTickerCallback)
+            this.gsapTickerCallback = null
+        }
+        this.sceneManager.destroy()
+        this.pixi.canvas.parentNode?.removeChild(this.pixi.canvas)
+        this.pixi.destroy(true)
+        this.isInitialised = false
+        this.log.info('Destroyed')
     }
 }
