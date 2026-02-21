@@ -75,7 +75,8 @@ export function StageEntityMixin<TBase extends Constructor<Container>>(Base: TBa
 
         /** @internal **/
         public async _init() {
-            await this.onCreate()
+            this.onCreate()
+            await this.onStart()
         }
 
         /** @internal **/
