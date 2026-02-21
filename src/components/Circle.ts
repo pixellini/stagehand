@@ -8,8 +8,7 @@ export class Circle extends StageGraphics {
         
         const d = context?.size ?? 0
         const c = context?.color || 0xFFFFFF
-        // const p = -d / 2
-        const p = 0
+        const p = -d / 2
 
         this
         .circle(p, p, d)
