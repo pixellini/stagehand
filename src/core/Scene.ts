@@ -16,7 +16,7 @@ export class Scene extends Container {
     /**
      * GSAP timeline to animate sprites and entities.
      */
-    public timeline!: gsap.core.Timeline
+    public timeline: gsap.core.Timeline = gsap.timeline({ paused: true })
     /**
      * 
      */
@@ -61,9 +61,11 @@ export class Scene extends Container {
      * Called automatically by SceneManager when the scene is added.
      */
     public async _init() {
+        // It's important that this is created inside of the gsap context.
+        // Otherwise we would run into memory leaks when it needs to be cleaned up.
         this.ctx.add(() => {
-            // It's important that this is created inside of the gsap context.
-            // Otherwise we would run into memory leaks when it needs to be cleaned up.
+            // Kill the eagerly-initialised placeholder before replacing it.
+            this.timeline.kill()
             this.timeline = gsap.timeline({
                 onStart: () => this.onTimelineStart(),
                 onUpdate: () => this.onTimelineUpdate(),
